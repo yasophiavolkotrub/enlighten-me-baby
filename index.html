@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>enlighten me baby</title>
+<style>
+  body { font-family: sans-serif; text-align: center; background: #fffbe6; margin: 0; padding: 0;}
+  button { padding: 10px 20px; margin: 10px; font-size: 16px; cursor: pointer; }
+  img { max-width: 220px; margin: 10px; cursor: pointer; border-radius: 10px; border: 2px solid transparent; }
+  img.selected { border-color: #5C6AC4; }
+  .hidden { display: none; }
+  .option-section { margin-top: 30px; }
+  .cookie, .cookie-broken, .incense, .incense-lit, .candle, .candle-lit { max-width: 150px; cursor: default; margin-top: 20px; }
+  #prediction { font-size: 18px; font-weight: bold; color: #333; margin-top: 15px; }
+  .note-input { width: 80%; padding: 8px; font-size: 16px; margin-top:10px; }
+</style>
+</head>
+<body>
+
+<h1>enlighten me baby</h1>
+
+<!-- Step 1: Choose Buddha or Jesus by images -->
+<div id="choosePerson" class="option-section">
+  <p>Обери образ:</p>
+  <img id="imgBuddha" src="https://uploads.onecompiler.io/437y633nf/446tfzw38/katya.jpg" alt="Будда" onclick="choosePerson('buddha')" />
+  <img id="imgJesus" src="https://uploads.onecompiler.io/437y633nf/446tckc4x/KATYA2.jpg" alt="Ісус" onclick="choosePerson('jesus')" />
+</div>
+
+<!-- Step 2: Options for Buddha -->
+<div id="buddhaOptions" class="option-section hidden">
+  <p>Обери дію з Буддою:</p>
+  <button onclick="buddhaChoose('prediction')">Подивитись передбачення</button>
+  <button onclick="buddhaChoose('incense')">Запалити благовонію</button>
+  <button onclick="buddhaGoBack()" style="margin-left: 20px;">⬅ Назад</button>
+</div>
+
+
+
+<!-- Step 3a: Buddha Prediction (печиво долі) -->
+<div id="buddhaPrediction" class="option-section hidden">
+  <p>Натисни на печиво, щоб отримати печиво долі 🧘‍♀️</p>
+  <img id="cookie" class="cookie" src="https://uploads.onecompiler.io/437y633nf/446tkpbe6/traditional-fortune-cookie-isolated-white-background_123827-25136.jpg" alt="Печиво" onclick="breakCookie()" style="cursor:pointer;">
+  <img id="cookieBroken" class="cookie-broken hidden" src="https://uploads.onecompiler.io/437y633nf/446tkpbe6/COOKIE.jpg" alt="Розламане печиво">
+  <p id="prediction"></p>
+  <button onclick="buddhaPredictionBack()" style="margin-top: 30px;">⬅ Назад</button>
+</div>
+
+
+<!-- Step 3b: Buddha Incense -->
+<div id="buddhaIncense" class="option-section hidden">
+  <p>Запали благовонію:</p>
+  <img id="incense" class="incense" src="https://uploads.onecompiler.io/437y633nf/446tkpbe6/%D0%B1%D0%BB%D0%B0%D0%B3%D0%BE%D0%B2%D0%BE%D0%BD%D1%96%D1%8F.jpg" alt="Благовонія" style="max-width:150px; vertical-align: middle;"/>
+  <button id="incenseButton" onclick="lightIncense()">Запалити благовонію</button>
+  <p id="incenseText"></p>
+  <button onclick="buddhaIncenseBack()" style="margin-top: 30px;">⬅ Назад</button>
+</div>
+
+<!-- Step 2: Options for Jesus -->
+<div id="jesusOptions" class="option-section hidden">
+  <p>Обери дію з Ісусом:</p>
+  <button onclick="jesusChoose('candle')">Поставити свічку</button>
+  <button onclick="jesusChoose('noteType')">Написати записку</button>
+  <button onclick="jesusGoBack()" style="margin-left: 20px;">⬅ Назад</button>
+</div>
+
+<!-- Step 3a: Jesus candle -->
+<div id="jesusCandle" class="option-section hidden">
+  <p>Свічка:</p>
+  <img id="candle" class="candle" src="https://uploads.onecompiler.io/437y633nf/446tfzw38/paraf60-583x583.jpg" alt="Свічка" style="max-width:150px; vertical-align: middle;" />
+  <button onclick="lightCandle()" style="vertical-align: middle;">Поставити свічку</button>
+  <p id="candleText" style="display:inline-block; margin-left: 15px;"></p>
+  <br/>
+  <button onclick="jesusCandleBack()" style="margin-top: 30px;">⬅ Назад</button>
+</div>
+
+<!-- Step 3b: Jesus note type -->
+<div id="jesusNoteType" class="option-section hidden">
+  <p>Оберіть тип записки:</p>
+  <button onclick="jesusNoteWrite('за здоров\'я')">За здоров'я</button>
+  <button onclick="jesusNoteWrite('за упокій')">За упокій</button>
+  <button onclick="jesusNoteTypeBack()" style="margin-left: 20px;">⬅ Назад</button>
+</div>
+
+<!-- Step 4: Jesus write note -->
+<div id="jesusNoteWrite" class="option-section hidden">
+  <p id="notePrompt"></p>
+  <input id="noteInput" class="note-input" type="text" placeholder="Напиши записку..." />
+  <button onclick="sendNote()">Відправити</button>
+  <p id="noteText"></p>
+  <button onclick="jesusNoteWriteBack()" style="margin-top: 30px;">⬅ Назад</button>
+</div>
+
+<script>
+const predictions = [
+  "плюс вайб",
+  "ганна дугінова",
+  "сьогодні буде затор на житомирській",
+  "тебе зглазілі",
+  "намічається поїздка",
+  "мінус вайб",
+  "твоя карма чиста",
+  "Твоя карма на 7/10 ⭐⭐⭐",
+  "час почистити карму...",
+  "випий чайочку"
+];
+
+let currentPerson = null; // 'buddha' or 'jesus'
+let currentNoteType = null;
+
+function hideAll() {
+  document.getElementById('choosePerson').classList.remove('hidden');
+  document.getElementById('buddhaOptions').classList.add('hidden');
+  document.getElementById('buddhaPrediction').classList.add('hidden');
+  document.getElementById('buddhaIncense').classList.add('hidden');
+  document.getElementById('jesusOptions').classList.add('hidden');
+  document.getElementById('jesusCandle').classList.add('hidden');
+  document.getElementById('jesusNoteType').classList.add('hidden');
+  document.getElementById('jesusNoteWrite').classList.add('hidden');
+  
+  // Reset Buddha prediction visuals
+  document.getElementById('cookie').classList.add('hidden');
+  document.getElementById('cookieBroken').classList.add('hidden');
+  document.getElementById('prediction').innerText = '';
+  document.getElementById('prediction').style.display = 'none';
+
+  // Buddha incense reset
+  document.getElementById('incense').style.display = 'inline-block';
+  document.getElementById('incenseText').innerText = '';
+  document.getElementById('incenseButton').disabled = false;
+  document.getElementById('incense').style.cursor = 'pointer';
+
+  // Jesus candle reset
+  document.getElementById('candle').src = "https://uploads.onecompiler.io/437y633nf/446tfzw38/paraf60-583x583.jpg";
+  document.getElementById('candleText').innerText = '';
+
+  // Jesus note reset
+  document.getElementById('noteInput').value = '';
+  document.getElementById('noteInput').placeholder = 'Напиши записку...';
+  document.getElementById('noteText').innerText = '';
+  currentNoteType = null;
+
+  // Remove selection border
+  document.getElementById('imgBuddha').classList.remove('selected');
+  document.getElementById('imgJesus').classList.remove('selected');
+}
+
+function choosePerson(person) {
+  hideAll();
+  currentPerson = person;
+  document.getElementById('choosePerson').classList.add('hidden');
+  if(person === 'buddha') {
+    document.getElementById('buddhaOptions').classList.remove('hidden');
+    document.getElementById('imgBuddha').classList.add('selected');
+  } else if(person === 'jesus') {
+    document.getElementById('jesusOptions').classList.remove('hidden');
+    document.getElementById('imgJesus').classList.add('selected');
+  }
+}
+
+// Buddha functions
+function buddhaChoose(choice) {
+  document.getElementById('buddhaOptions').classList.add('hidden');
+  if(choice === 'prediction') {
+    document.getElementById('buddhaPrediction').classList.remove('hidden');
+    document.getElementById('cookie').classList.remove('hidden');
+  } else if(choice === 'incense') {
+    document.getElementById('buddhaIncense').classList.remove('hidden');
+  }
+}
+function buddhaGoBack() {
+  hideAll();
+  currentPerson = null;
+
+}
+function breakCookie() {
+  document.getElementById('cookie').classList.add('hidden');
+  document.getElementById('cookieBroken').classList.remove('hidden');
+  const randomIndex = Math.floor(Math.random() * predictions.length);
+  document.getElementById('prediction').innerText = predictions[randomIndex];
+  document.getElementById('prediction').style.display = 'block';
+}
+function buddhaPredictionBack() {
+  document.getElementById('buddhaPrediction').classList.add('hidden');
+  document.getElementById('buddhaOptions').classList.remove('hidden');
+}
+function lightIncense() {
+  const inc = document.getElementById('incense');
+  inc.src = 'https://uploads.onecompiler.io/437y633nf/446tkpbe6/%D0%B1%D0%B1%D0%B1%D0%B1%D0%B1%D0%B1%D0%B1%D0%B1%D0%B1%D0%B1%D0%B1%D0%B1%D0%B1.jpg';
+  inc.style.cursor = 'default';
+  document.getElementById('incenseText').innerText = "Вас благословили 🔮✨";
+  document.getElementById('incenseButton').disabled = true;
+}
+function buddhaIncenseBack() {
+  document.getElementById('buddhaIncense').classList.add('hidden');
+  document.getElementById('buddhaOptions').classList.remove('hidden');
+  const inc = document.getElementById('incense');
+  inc.src = 'https://via.placeholder.com/50x150.png?text=Благовонія';
+  inc.style.cursor = 'pointer';
+  document.getElementById('incenseText').innerText = '';
+  document.getElementById('incenseButton').disabled = false;
+}
+
+// Jesus functions
+function jesusChoose(choice) {
+  document.getElementById('jesusOptions').classList.add('hidden');
+  if(choice === 'candle') {
+    document.getElementById('jesusCandle').classList.remove('hidden');
+  } else if(choice === 'noteType') {
+    document.getElementById('jesusNoteType').classList.remove('hidden');
+  }
+}
+function jesusGoBack() {
+  hideAll();
+  currentPerson = null;
+}
+function lightCandle() {
+  const candle = document.getElementById('candle');
+  candle.src = "https://uploads.onecompiler.io/437y633nf/446tfzw38/cerkovna%20svichka.jpg";
+  document.getElementById('candleText').innerText = "Свічка поставлена 🕯️";
+  document.querySelector('#jesusCandle button').style.display = 'none';  
+}
+function jesusCandleBack() {
+  document.getElementById('jesusCandle').classList.add('hidden');
+  document.getElementById('jesusOptions').classList.remove('hidden');
+  document.getElementById('candle').src = "https://uploads.onecompiler.io/437y633nf/446tfzw38/paraf60-583x583.jpg";
+  document.getElementById('candleText').innerText = "";
+  document.querySelector('#jesusCandle button').style.display = 'inline-block';
+}
+function jesusNoteWrite(type) {
+  currentNoteType = type;
+  document.getElementById('jesusNoteType').classList.add('hidden');
+  document.getElementById('jesusNoteWrite').classList.remove('hidden');
+
+  const prompt = `Напиши записку ${type.toLowerCase()}...`;
+  document.getElementById('notePrompt').innerText = prompt;
+  document.getElementById('noteInput').placeholder = prompt;
+  document.getElementById('noteInput').value = '';
+  document.getElementById('noteText').innerText = '';
+}
+function jesusNoteTypeBack() {
+  document.getElementById('jesusNoteType').classList.add('hidden');
+  document.getElementById('jesusOptions').classList.remove('hidden');
+}
+function jesusNoteWriteBack() {
+  document.getElementById('jesusNoteWrite').classList.add('hidden');
+  document.getElementById('jesusNoteType').classList.remove('hidden');
+}
+function sendNote() {
+  const note = document.getElementById('noteInput').value.trim();
+  if(!note) return;
+  document.getElementById('noteText').innerText = `почув тебе брат: "${note}" 🙏`;
+  document.getElementById('noteInput').value = '';
+}
+</script>
+
+</body>
+</html>
